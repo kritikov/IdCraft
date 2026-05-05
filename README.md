@@ -1,6 +1,6 @@
-# 🛠️ IdCraft
+# 🛠️ IdCraft.js
 
-**IdCraft** is a professional-grade JavaScript toolkit designed for crafting and inspecting cryptographically strong identifiers. It provides a unified interface for **NanoID** and **UUID (v1, v4, v7)**, with built-in metadata analysis.
+**IdCraft.js** is a professional-grade JavaScript toolkit designed for crafting and inspecting cryptographically strong identifiers. It provides a unified interface for **NanoID** and **UUID (v1, v4, v7)**, with built-in metadata analysis.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Size: Tiny](https://img.shields.io/badge/Size-Tiny-blue)
@@ -11,10 +11,9 @@
 ## ✨ Key Features
 
 * **NanoID Generation**: Customizable, URL-friendly IDs with protection against modulo bias.
-* **UUID Support**:
+* **UUID Generation**:
     * **v4**: Secure random identifiers. Uses native `crypto.randomUUID()` when available for optimized performance.
     * **v7**: Modern, time-ordered IDs (perfect for database primary keys and sequential indexing).
-    * **v1**: Legacy time-based IDs.
 * **Deep Inspection**: Extract timestamps, ISO dates, and node information from existing UUIDs.
 * **Cryptographically Secure**: Leverages the Web Crypto API (`crypto.getRandomValues`) for maximum entropy.
 * **Zero Dependencies**: Lightweight, fast, and dependency-free.
@@ -26,12 +25,13 @@
 You can include IdCraft in your project by cloning the repository or importing it directly:
 
 ```javascript
-import IdCraft from './path/to/IdCraft.js';
+import IdCraft from './IdCraft.js';
 ```
+---
 
 ## 📖 Usage Guide
 
-1. Generating NanoIDs
+### 1. Generating NanoIDs
 
 Create short, secure, and customizable IDs.
 
@@ -46,7 +46,7 @@ const result = IdCraft.generateNanoIds({
 console.log(result.nanoIds); // ["user_A1b2C3d4E5f6"]
 ```
 
-2. Generating UUIDs
+### 2. Generating UUIDs
 
 Generate standard v4 (random) or the new v7 (time-ordered) UUIDs.
 
@@ -61,9 +61,9 @@ const batch = IdCraft.generateUUIDs({
 console.log(batch.uuids);
 ```
 
-3. Inspecting UUIDs
+### 3. Inspecting UUIDs
 
-One of IdCraft's unique features is the ability to "deconstruct" a UUID string to see its origin.
+One of IdCraft's features is the ability to "deconstruct" a UUID string to see its origin.
 
 ```JavaScript
 const inspection = IdCraft.inspectUUID("018f4a12-b7e1-7abc-8d2f-4a5b6c7d8e9f");
@@ -77,19 +77,23 @@ if (inspection.valid) {
 }
 ```
 
+---
+
 ## 🛡️ Security & Performance
 
-Native Speed
+### Native Speed
 
 For UUID v4, IdCraft automatically detects if the environment supports the native crypto.randomUUID() method.
 If available, it uses the browser/runtime's optimized implementation. If not, it falls back to a secure crypto.getRandomValues()
 buffer implementation.
 
-Modulo Bias Protection
+### Modulo Bias Protection
 
 Most simple ID generators use Math.random() % charset.length, which creates a subtle
 statistical bias. IdCraft eliminates this by calculating a maxValid threshold, ensuring that
 every character in your alphabet has a mathematically equal chance of being selected.
+
+---
 
 ## 📜 License
 
