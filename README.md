@@ -128,7 +128,7 @@ every character in your alphabet has a mathematically equal chance of being sele
 * `uuid`: (UUID Instance) The analyzed UUID object (only if valid).
 * `error`: (string) Error message (only if invalid).
 
-### `IdCraft.inspectUUID(input)`
+### `IdCraft.inspectUUID(uuid)`
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
