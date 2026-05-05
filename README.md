@@ -95,6 +95,59 @@ every character in your alphabet has a mathematically equal chance of being sele
 
 ---
 
+## 🛠️ API Reference
+
+### `IdCraft.generateUUIDs(options)`
+
+| Option | Default | Description |
+| :--- | :--- | :--- |
+| `count` | `1` | Number of IDs to generate |
+| `version` | `"v4"` | `"v4"` or `"v7"` |
+| `withHyphens` | `false` | Returns `xxxxxxxx-xxxx...` if true |
+| `format` | `"lowercase"` | `"lowercase"` or `"uppercase"` |
+
+
+
+### `IdCraft.generateNanoIds(options)`
+
+| Option | Default | Description |
+| :--- | :--- | :--- |
+| `length` | `21` | ID length of the random part |
+| `lowercase` | `true` | Include `a-z` |
+| `numbers` | `false` | Include `0-9` |
+| `extra` | `""` | Add custom characters |
+
+### `IdCraft.inspectUUIDs(uuids)`
+
+| Option | Type | Description |
+| :--- | :--- | :--- |
+| `uuids` | `string[]` | An array of UUID strings to be inspected |
+
+**Returns:** An array of objects, where each object contains:
+* `valid`: (boolean) Whether the specific UUID is valid.
+* `uuid`: (UUID Instance) The analyzed UUID object (only if valid).
+* `error`: (string) Error message (only if invalid).
+
+### `IdCraft.inspectUUID(input)`
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `input` | `string` | The UUID string to analyze (supports hyphens, braces, and mixed case) |
+
+**Returns:** An inspection object containing:
+* `valid`: (boolean) True if the input is a valid 32-character hex string.
+* `uuid`: (UUID instance) Access to metadata methods like `getInformation()`, `version`, `variant`, and `v7.iso`.
+* `error`: (string) Detailed error message if the validation fails.
+
+**Example:**
+```javascript
+const result = IdCraft.inspectUUID("{018f4a12-b7e1-7abc-8d2f-4a5b6c7d8e9f}");
+if (result.valid) {
+    console.log(result.uuid.v7.iso); // Returns the creation date
+}
+
+---
+
 ## 📜 License
 
 This project is licensed under the GNU GPL v3.0 or later - see the LICENSE file for details.
