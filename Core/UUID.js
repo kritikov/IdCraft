@@ -164,10 +164,10 @@ export default class UUID {
     static generateMany(options = {}) {
 		const {
 			count = 1,
-			format = "lowercase",
+			format = "lowercase",   // lowercase | uppercase
 			withHyphens = false,
-			braces = "none",
-			version = "v4"
+			braces = "none",        // none, curly
+			version = "v4"          // v4, v7
 		} = options;
 
 		const uuids = [];
