@@ -48,8 +48,8 @@ export default class IdCraft {
      * @returns {string} [result.error] - Error message if invalid.
      * @returns {UUID} [result.uuid] - A new UUID instance for further analysis if valid.
      */
-    static inspectUUID(input) {
-        const result = UUID.isValidInput(input);
+    static inspectUUID(uuid) {
+        const result = UUID.isValidInput(uuid);
         if (!result.valid) {
             return {
                 valid: false,
