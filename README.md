@@ -22,7 +22,7 @@
 
 ## 🚀 Installation
 
-You can include IdCraft in your project by importing it:
+You can include IdCraft.js in your project by importing it:
 
 ```javascript
 import IdCraft from './IdCraft.js';
@@ -37,10 +37,16 @@ Create short, secure, and customizable IDs.
 
 ```JavaScript
 const result = IdCraft.generateNanoIds({
-    length: 12,
-    numbers: true,
-    uppercase: true,
-    prefix: "user_"
+   count: 10,
+   length: 12,
+   numbers: true,
+   lowercase: true,
+   uppercase: true,
+   numbers: true,
+   symbols: true,
+   extra: "",
+   prefix: "user_",
+   suffix: ""
 });
 
 console.log(result.nanoIds); // ["user_A1b2C3d4E5f6"]
@@ -53,9 +59,11 @@ Generate standard v4 (random) or the new v7 (time-ordered) UUIDs.
 ```JavaScript
 // Generate 5 time-ordered UUIDs (v7)
 const batch = IdCraft.generateUUIDs({
-    version: "v7",
-    count: 5,
-    withHyphens: true
+   count: 5,
+   version: "v7",         // v4, v7
+   format: "lowercase",   // lowercase | uppercase
+   withHyphens: true,
+   braces = "none",      // none, curly
 });
 
 console.log(batch.uuids);
@@ -66,17 +74,28 @@ console.log(batch.uuids);
 One of IdCraft's features is the ability to "deconstruct" a UUID string to see its origin.
 
 ```JavaScript
-const inspection = IdCraft.inspectUUID("018f4a12-b7e1-7abc-8d2f-4a5b6c7d8e9f");
+// Example: Inspecting multiple IDs at once
+const items = [
+    "018f4a12-b7e1-7abc-8d2f-4a5b6c7d8e9f", // valid v7
+    "48507851-419b-4654-9337-1836f32e9206", // valid v4
+    "invalid-id-123"                         // invalid
+];
 
-if (inspection.valid) {
-    console.log(inspection.uuid.version);      // 7
-    console.log(inspection.uuid.getInformation()); 
-    // Output: "This is a UUID v7. It is time-ordered and includes a timestamp. Generated around 2024-05-05T12:00:00.000Z."
-    
-    console.log(inspection.uuid.v7.relativeTime); // e.g., "just now"
-}
+const results = IdCraft.inspectUUIDs(items);
+
+results.forEach((inspection, index) => {
+    if (inspection.valid) {
+        console.log(`Item ${index} is a valid v${inspection.uuid.version}`);
+        console.log(inspection.uuid.getInformation());
+        
+        // Access relative time if it's a time-based UUID (v1 or v7)
+        const timeInfo = inspection.uuid.v7?.relativeTime || inspection.uuid.v1?.relativeTime;
+        if (timeInfo) console.log(`Generated: ${timeInfo}`);
+    } else {
+        console.error(`Item ${index} error: ${inspection.error}`);
+    }
+});
 ```
-
 ---
 
 ## 🛡️ Security & Performance
@@ -95,56 +114,21 @@ every character in your alphabet has a mathematically equal chance of being sele
 
 ---
 
-## 🛠️ API Reference
+## 🛡️ View online
+You can view the usage of library online at:
 
-### `IdCraft.generateUUIDs(options)`
+https://nkode.gr/GR/tools/uuid-generator
+<img width="645" height="761" alt="image" src="https://github.com/user-attachments/assets/b30938cd-9a32-4c20-9d41-df9d4c5a6db9" />
 
-| Option | Default | Description |
-| :--- | :--- | :--- |
-| `count` | `1` | Number of IDs to generate |
-| `version` | `"v4"` | `"v4"` or `"v7"` |
-| `withHyphens` | `false` | Returns `xxxxxxxx-xxxx...` if true |
-| `format` | `"lowercase"` | `"lowercase"` or `"uppercase"` |
+---
 
+https://nkode.gr/EN/tools/uuid-inspector
+<img width="636" height="811" alt="image" src="https://github.com/user-attachments/assets/7b2c6837-2bcb-4324-8404-701de7708d17" />
 
+---
 
-### `IdCraft.generateNanoIds(options)`
-
-| Option | Default | Description |
-| :--- | :--- | :--- |
-| `length` | `21` | ID length of the random part |
-| `lowercase` | `true` | Include `a-z` |
-| `numbers` | `false` | Include `0-9` |
-| `extra` | `""` | Add custom characters |
-
-### `IdCraft.inspectUUIDs(uuids)`
-
-| Option | Type | Description |
-| :--- | :--- | :--- |
-| `uuids` | `string[]` | An array of UUID strings to be inspected |
-
-**Returns:** An array of objects, where each object contains:
-* `valid`: (boolean) Whether the specific UUID is valid.
-* `uuid`: (UUID Instance) The analyzed UUID object (only if valid).
-* `error`: (string) Error message (only if invalid).
-
-### `IdCraft.inspectUUID(uuid)`
-
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `input` | `string` | The UUID string to analyze (supports hyphens, braces, and mixed case) |
-
-**Returns:** An inspection object containing:
-* `valid`: (boolean) True if the input is a valid 32-character hex string.
-* `uuid`: (UUID instance) Access to metadata methods like `getInformation()`, `version`, `variant`, and `v7.iso`.
-* `error`: (string) Detailed error message if the validation fails.
-
-**Example:**
-```javascript
-const result = IdCraft.inspectUUID("{018f4a12-b7e1-7abc-8d2f-4a5b6c7d8e9f}");
-if (result.valid) {
-    console.log(result.uuid.v7.iso); // Returns the creation date
-}
+https://nkode.gr/EN/tools/nano-id-generator
+<img width="644" height="809" alt="image" src="https://github.com/user-attachments/assets/49562692-b77a-4b50-b031-15a94aea204d" />
 
 ---
 
