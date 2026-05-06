@@ -39,7 +39,6 @@ Create short, secure, and customizable IDs.
 const result = IdCraft.generateNanoIds({
    count: 10,
    length: 12,
-   numbers: true,
    lowercase: true,
    uppercase: true,
    numbers: true,
@@ -63,7 +62,7 @@ const batch = IdCraft.generateUUIDs({
    version: "v7",         // v4, v7
    format: "lowercase",   // lowercase | uppercase
    withHyphens: true,
-   braces = "none",      // none, curly
+   braces: "none",       // none, curly
 });
 
 console.log(batch.uuids);
