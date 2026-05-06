@@ -10,19 +10,19 @@
 
 ## ✨ Key Features
 
-* **NanoID Generation**: Customizable, URL-friendly IDs with protection against modulo bias.
+* **NanoID Generation**: Customizable, URL-friendly IDs with built-in protection against modulo bias.
 * **UUID Generation**:
-    * **v4**: Secure random identifiers. Uses native `crypto.randomUUID()` when available for optimized performance.
-    * **v7**: Modern, time-ordered IDs (perfect for database primary keys and sequential indexing).
-* **Deep Inspection**: Extract timestamps, ISO dates, and node information from existing UUIDs.
+    * **v4**: Secure random identifiers. Uses native `crypto.randomUUID()` when available for maximum performance.
+    * **v7**: Modern, time-ordered IDs—optimized for database primary keys and sequential indexing.
+* **Deep Inspection (v1, v4, v7)**: Powerful analysis tools to "decode" existing UUIDs. Extract **timestamps**, **ISO dates**, **relative time** (e.g., "5 mins ago"), and even **Node (MAC)** information from v1 strings.
 * **Cryptographically Secure**: Leverages the Web Crypto API (`crypto.getRandomValues`) for maximum entropy.
-* **Zero Dependencies**: Lightweight, fast, and dependency-free.
+* **Zero Dependencies**: Pure JavaScript. Lightweight, fast, and dependency-free.
 
 ---
 
 ## 🚀 Installation
 
-You can include IdCraft in your project by cloning the repository or importing it directly:
+You can include IdCraft in your project by importing it:
 
 ```javascript
 import IdCraft from './IdCraft.js';
