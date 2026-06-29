@@ -1,5 +1,7 @@
 import NanoId from "./Core/NanoId.js";
 import UUID from "./Core/UUID.js";
+import nString from "./Core/nString.js";
+
 
 /**
  * Main Entry point for the ID Generation library.
@@ -76,5 +78,24 @@ export default class IdCraft {
         }
     
         return uuids.map(input => IdCraft.inspectUUID(input));
+    }
+
+    /**
+     * Generates a cryptographically secure random string or password.
+     * Uses the Web Crypto API client-side via the nString engine.
+     * * @param {Object} options - Configuration for string generation.
+     * @param {number} [options.length=16] - The length of the generated string (1-128).
+     * @param {boolean} [options.lowercase=true] - Include lowercase characters (a-z).
+     * @param {boolean} [options.uppercase=false] - Include uppercase characters (A-Z).
+     * @param {boolean} [options.numbers=false] - Include numbers (0-9).
+     * @param {boolean} [options.symbols=false] - Include special characters/symbols.
+     * @param {boolean} [options.excludeSimilar=false] - Exclude visually similar chars (O, 0, I, l, 1).
+     * @param {boolean} [options.excludeAmbiguous=false] - Exclude ambiguous characters (' " ` \).
+     * @param {boolean} [options.guaranteeAll=true] - Ensure at least one char from each selected group.
+     * @param {string} [options.extra=""] - Additional custom characters to include in the pool.
+     * @returns {Object} Result object { valid: boolean, string: string, error: string }.
+     */
+    static getRandomString(options = {}) {
+        return nString.generate(options);
     }
 }
