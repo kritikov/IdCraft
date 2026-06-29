@@ -14,6 +14,7 @@
 * **UUID Generation**:
     * **v4**: Secure random identifiers. Uses native `crypto.randomUUID()` when available for maximum performance.
     * **v7**: Modern, time-ordered IDs—optimized for database primary keys and sequential indexing.
+* **Random String Generation**: Generate random Strings & Passwords.
 * **Deep Inspection (v1, v4, v7)**: Powerful analysis tools to "decode" existing UUIDs. Extract **timestamps**, **ISO dates**, **relative time** (e.g., "5 mins ago"), and even **Node (MAC)** information from v1 strings.
 * **Cryptographically Secure**: Leverages the Web Crypto API (`crypto.getRandomValues`) for maximum entropy.
 * **Zero Dependencies**: Pure JavaScript. Lightweight, fast, and dependency-free.
@@ -68,7 +69,27 @@ const batch = IdCraft.generateUUIDs({
 console.log(batch.uuids);
 ```
 
-### 3. Inspecting UUIDs
+### 3. Generating Random Strings & Passwords
+
+Create cryptographically secure random strings or strong passwords with smart filtering rules and character group distribution guarantees.
+
+```JavaScript
+const result = IdCraft.getRandomString({
+    length: 16,
+    lowercase: true,
+    uppercase: true,
+    numbers: true,
+    symbols: true,
+    excludeSimilar: true,     // Excludes confusing chars like O, 0, I, l, 1
+    excludeAmbiguous: true,   // Excludes symbols like ' " ` \ to prevent escaping issues
+    guaranteeAll: true,       // Ensures at least one character from each active group
+    extra: ""                 // Pass any additional custom characters here
+});
+
+console.log(result.string); // Example: "pX9#mK4@fG2!vR7$"
+```
+
+### 4. Inspecting UUIDs
 
 One of IdCraft's features is the ability to "deconstruct" a UUID string to see its origin.
 
