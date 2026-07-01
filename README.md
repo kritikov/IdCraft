@@ -1,6 +1,6 @@
 # 🛠️ IdCraft.js
 
-**IdCraft.js** is a professional-grade JavaScript toolkit designed for crafting and inspecting cryptographically strong identifiers. It provides a unified interface for **NanoID** and **UUID (v1, v4, v7)**, with built-in metadata analysis.
+**IdCraft.js** is a professional-grade JavaScript toolkit designed for crafting and inspecting cryptographically strong identifiers. It provides a unified interface for **NanoID**, **UUID (v1, v4, v7)**, **ULID** and **Random String**, with built-in metadata analysis.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ![Size: Tiny](https://img.shields.io/badge/Size-Tiny-blue)
@@ -10,6 +10,7 @@
 
 ## ✨ Key Features
 
+* **ULID Generation**: Universally Unique Lexicographically Sortable Identifiers. Generates 26-character, URL-safe IDs using Crockford's Base32 alphabet. Includes an automatic **Monotonicity Guard** to ensure strict chronological ordering during batch generation within the same millisecond.
 * **NanoID Generation**: Customizable, URL-friendly IDs with built-in protection against modulo bias.
 * **UUID Generation**:
     * **v4**: Secure random identifiers. Uses native `crypto.randomUUID()` when available for maximum performance.
@@ -18,7 +19,6 @@
 * **Deep Inspection (v1, v4, v7)**: Powerful analysis tools to "decode" existing UUIDs. Extract **timestamps**, **ISO dates**, **relative time** (e.g., "5 mins ago"), and even **Node (MAC)** information from v1 strings.
 * **Cryptographically Secure**: Leverages the Web Crypto API (`crypto.getRandomValues`) for maximum entropy.
 * **Zero Dependencies**: Pure JavaScript. Lightweight, fast, and dependency-free.
-
 ---
 
 ## 🚀 Installation
@@ -69,7 +69,26 @@ const batch = IdCraft.generateUUIDs({
 console.log(batch.uuids);
 ```
 
-### 3. Generating Random Strings & Passwords
+### 3. Generating ULIDs
+
+Generate Universally Unique Lexicographically Sortable Identifiers (ULIDs) wrapped in Crockford's Base32 encoding.
+
+```JavaScript
+// Generate 5 time-ordered ULIDs
+const batch = IdCraft.generateULIDs({
+    count: 5,
+    format: "uppercase"   // uppercase (standard) | lowercase
+});
+
+console.log(batch.ulids);
+// Output: Array of 26-character sortable strings
+
+console.log(batch.monotonicUsed); 
+// true if monotonicity guard was triggered within the same millisecond
+```
+
+
+### 4. Generating Random Strings & Passwords
 
 Create cryptographically secure random strings or strong passwords with smart filtering rules and character group distribution guarantees.
 
@@ -89,7 +108,7 @@ const result = IdCraft.getRandomString({
 console.log(result.string); // Example: "pX9#mK4@fG2!vR7$"
 ```
 
-### 4. Inspecting UUIDs
+### 5. Inspecting UUIDs
 
 One of IdCraft's features is the ability to "deconstruct" a UUID string to see its origin.
 
