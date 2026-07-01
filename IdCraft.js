@@ -1,6 +1,7 @@
 import NanoId from "./Core/NanoId.js";
 import UUID from "./Core/UUID.js";
 import nString from "./Core/nString.js";
+import nULID from "./Core/nULID.js";
 
 
 /**
@@ -97,5 +98,25 @@ export default class IdCraft {
      */
     static getRandomString(options = {}) {
         return nString.generate(options);
+    }
+
+    
+    /**
+     * Generates a batch of Universally Unique Lexicographically Sortable Identifiers (ULIDs).
+     * ULIDs combine a 48-bit millisecond timestamp with 80 bits of cryptographic randomness,
+     * wrapped in Crockford's Base32 encoding (26 characters, case-insensitive, URL-safe).
+     * * Includes a Monotonicity Guard to ensure strict chronological ordering even when
+     * identifiers are generated sequentially within the exact same millisecond.
+     * * @param {Object} options - Configuration for ULID generation.
+     * @param {number} [options.count=1] - The number of ULIDs to generate in this batch.
+     * @param {string} [options.format="uppercase"] - Text casing format: 'uppercase' (standard) or 'lowercase'.
+     * @returns {Object} Result object containing:
+     * - {boolean} valid: Whether the generation was successful.
+     * - {string[]} ulids: Array of the generated ULID strings.
+     * - {boolean} monotonicUsed: True if the monotonicity guard was triggered during generation.
+     * - {string} error: Error message, if any.
+     */
+    static generateULIDs(options = {}) {
+        return nULID.generateMany(options);
     }
 }
