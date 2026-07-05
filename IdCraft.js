@@ -1,7 +1,8 @@
-import NanoId from "./Core/NanoId.js";
-import UUID from "./Core/UUID.js";
-import nString from "./Core/nString.js";
-import nULID from "./Core/nULID.js";
+import nNanoId from "./Core/nNanoId.js?ver=1";
+import nUUID from "./Core/nUUID.js?ver=1";
+import nString from "./Core/nString.js?ver=2";
+import nULID from "./Core/nULID.js?ver=2";
+import nEntropy from "./Core/nEntropy.js?ver=2";
 
 
 /**
@@ -11,74 +12,25 @@ import nULID from "./Core/nULID.js";
 export default class IdCraft {
 
     /**
-     * Generates a batch of UUIDs based on the specified version and format.
-     * * @param {Object} options - Configuration for UUID generation.
-     * @param {number} [options.count=1] - Number of UUIDs to generate (1-100).
-     * @param {string} [options.format="lowercase"] - Output case: "lowercase" or "uppercase".
-     * @param {boolean} [options.withHyphens=false] - Whether to include standard UUID hyphens.
-     * @param {string} [options.braces="none"] - Wrap style: "none" or "curly".
-     * @param {string} [options.version="v4"] - UUID version: "v4" (random) or "v7" (time-ordered).
-     * @returns {Object} Result containing an array of 'uuids', the 'source' of entropy, and 'reliability'.
+     * Comprehensive structural diagnostic method designed for rich telemetry UI output.
+     * Forward-call to the underlying nEntropy analytical engine.
+     * * @param {string} input - Raw string token or password to analyze.
+     * @param {Object} [options={}] - Configuration parameter adjustments block.
+     * @param {number} [options.guessesPerSecond=1e10] - Number of brute-force attempts per second by the attacker.
+     * @param {string} [options.searchMode="exhaustive"] - Execution analysis strategy ("exhaustive" or "smart").
+     * @param {boolean} [options.trimSpaces=false] - If true, strips leading and trailing whitespaces before analysis.
+     * @param {number|string} [options.poolOverride="auto"] - Manual override for the resolved character pool size (R).
+     * * @returns {{
+     * valid: boolean,
+     * entropyBits: number,
+     * poolSize: number,
+     * stringLength: number,
+     * crackTimeFormatted: string,
+     * messages: Array
+     * }} Complete analytical output payload execution block.
      */
-    static generateUUIDs(options = {}) {
-        return UUID.generateMany(options);
-    }
-
-    /**
-     * Generates a batch of NanoIDs with customizable character sets and structure.
-     * * @param {Object} options - Configuration for NanoID generation.
-     * @param {number} [options.count=1] - Number of IDs to generate.
-     * @param {number} [options.length=21] - Character length of each ID core.
-     * @param {boolean} [options.lowercase=true] - Include lowercase letters.
-     * @param {boolean} [options.uppercase=false] - Include uppercase letters.
-     * @param {boolean} [options.numbers=false] - Include digits 0-9.
-     * @param {boolean} [options.symbols=false] - Include symbols (_-).
-     * @param {string} [options.extra=""] - Additional custom characters to include in the charset.
-     * @param {string} [options.prefix=""] - String to prepend to every ID.
-     * @param {string} [options.suffix=""] - String to append to every ID.
-     * @returns {Object} Result containing 'valid' status, the array of 'nanoIds', and any 'error' message.
-     */
-    static generateNanoIds(options = {}) {
-        return NanoId.generateMany(options);
-    }
-
-    /**
-     * Validates a UUID string and returns a detailed inspection object.
-     * If valid, it provides a UUID instance with metadata (version, variant, timestamp).
-     * * @param {string} input - The UUID string to inspect (supports various formats/braces).
-     * @returns {Object} result - Inspection result.
-     * @returns {boolean} result.valid - True if the input is a valid UUID.
-     * @returns {string} [result.error] - Error message if invalid.
-     * @returns {UUID} [result.uuid] - A new UUID instance for further analysis if valid.
-     */
-    static inspectUUID(uuid) {
-        const result = UUID.isValidInput(uuid);
-        if (!result.valid) {
-            return {
-                valid: false,
-                error: result.error
-            };
-        }
-        else {
-            return {
-                valid: true,
-                uuid: new UUID(result.clean)
-            };
-        }
-    }
-
-    /**
-     * Performs a batch inspection on an array of UUID strings.
-     * Useful for validating large lists of IDs from databases or user input.
-     * * @param {string[]} uuids - Array of UUID strings to validate.
-     * @returns {Object[]} Array of inspection results (see inspectUUID for object structure).
-     */
-    static inspectUUIDs(uuids) {
-        if (!uuids || uuids.length === 0) {
-            return [];
-        }
-    
-        return uuids.map(input => IdCraft.inspectUUID(input));
+    static analyzeEntropy(input, options = {}) {
+        return nEntropy.analyze(input, options);
     }
 
     /**
@@ -100,7 +52,6 @@ export default class IdCraft {
         return nString.generate(options);
     }
 
-    
     /**
      * Generates a batch of Universally Unique Lexicographically Sortable Identifiers (ULIDs).
      * ULIDs combine a 48-bit millisecond timestamp with 80 bits of cryptographic randomness,
@@ -118,5 +69,103 @@ export default class IdCraft {
      */
     static generateULIDs(options = {}) {
         return nULID.generateMany(options);
+    }
+
+    /**
+     * Generates a batch of NanoIDs with customizable character sets and structure.
+     * * @param {Object} options - Configuration for NanoID generation.
+     * @param {number} [options.count=1] - Number of IDs to generate.
+     * @param {number} [options.length=21] - Character length of each ID core.
+     * @param {boolean} [options.lowercase=true] - Include lowercase letters.
+     * @param {boolean} [options.uppercase=false] - Include uppercase letters.
+     * @param {boolean} [options.numbers=false] - Include digits 0-9.
+     * @param {boolean} [options.symbols=false] - Include symbols (_-).
+     * @param {string} [options.extra=""] - Additional custom characters to include in the charset.
+     * @param {string} [options.prefix=""] - String to prepend to every ID.
+     * @param {string} [options.suffix=""] - String to append to every ID.
+     * @returns {Object} Result containing 'valid' status, the array of 'nanoIds', and any 'error' message.
+     */
+    static generateNanoIds(options = {}) {
+        return nNanoId.generateMany(options);
+    }
+
+    /**
+     * Generates a batch of UUIDs based on the specified version and format.
+     * * @param {Object} options - Configuration for UUID generation.
+     * @param {number} [options.count=1] - Number of UUIDs to generate (1-100).
+     * @param {string} [options.format="lowercase"] - Output case: "lowercase" or "uppercase".
+     * @param {boolean} [options.withHyphens=false] - Whether to include standard UUID hyphens.
+     * @param {string} [options.braces="none"] - Wrap style: "none" or "curly".
+     * @param {string} [options.version="v4"] - UUID version: "v4" (random) or "v7" (time-ordered).
+     * @returns {Object} Result containing an array of 'uuids', the 'source' of entropy, and 'reliability'.
+     */
+    static generateUUIDs(options = {}) {
+        return nUUID.generateMany(options);
+    }
+    
+    /**
+     * Validates a UUID string and returns a detailed inspection object.
+     * Generates a unified telemetry block optimized for the ToolsHelper UI component.
+     * @param {string} uuid - The UUID string to inspect (supports various formats/braces).
+     * @returns {Object} result - Inspection result and UI telemetry pack.
+     */
+    static inspectUUID(uuid) {
+        const result = nUUID.isValidInput(uuid);
+        if (!result.valid) {
+            return {
+                valid: false,
+                error: result.error
+            };
+        }
+
+        try {
+            const uuidInstance = new nUUID(result.clean);
+
+            // 1. Structural Info Message in plain English
+            const infoMessage = {
+                severity: "info",
+                title: "Identifier Structural Analysis",
+                details: uuidInstance.getInformation()
+            };
+
+            // 2. Mapping the Message instances from nUUID.warnings to flat UI objects
+            const normalizedWarnings = (uuidInstance.warnings || []).map(w => {
+                return {
+                    // Ensures lowercase format (e.g., "warning", "critical") for ToolsHelper CSS classes
+                    severity: String(w.severity).toLowerCase(), 
+                    title: w.title,
+                    details: w.details
+                };
+            });
+
+            // 3. Unify into a flat array (Info first, then Warnings)
+            const uiMessages = [infoMessage, ...normalizedWarnings];
+
+            return {
+                valid: true,
+                uuid: uuidInstance,
+                uiMessages: uiMessages // 🎯 Directly consumed by Code Behind
+            };
+        } 
+        catch (err) {
+            return {
+                valid: false,
+                error: err.message
+            };
+        }
+    }
+
+    /**
+     * Performs a batch inspection on an array of UUID strings.
+     * Useful for validating large lists of IDs from databases or user input.
+     * @param {string[]} uuids - Array of UUID strings to validate.
+     * @returns {Object[]} Array of inspection results.
+     */
+    static inspectUUIDs(uuids) {
+        if (!uuids || uuids.length === 0) {
+            return [];
+        }
+    
+        return uuids.map(input => IdCraft.inspectUUID(input));
     }
 }

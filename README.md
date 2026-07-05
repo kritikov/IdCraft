@@ -19,6 +19,7 @@
 * **Deep Inspection (v1, v4, v7)**: Powerful analysis tools to "decode" existing UUIDs. Extract **timestamps**, **ISO dates**, **relative time** (e.g., "5 mins ago"), and even **Node (MAC)** information from v1 strings.
 * **Cryptographically Secure**: Leverages the Web Crypto API (`crypto.getRandomValues`) for maximum entropy.
 * **Zero Dependencies**: Pure JavaScript. Lightweight, fast, and dependency-free.
+* **Entropy Analysis Engine**: Measures the exact mathematical strength of any string payload. Computes information entropy in bits ($H$) using the Shannon Entropy formula.
 ---
 
 ## 🚀 Installation
@@ -134,6 +135,40 @@ results.forEach((inspection, index) => {
         console.error(`Item ${index} error: ${inspection.error}`);
     }
 });
+```
+---
+
+### 6. Analyzing String Entropy & Strength
+
+IdCraft includes an entropy evaluation engine designed to measure the mathematical strength of any string payload, compute its crack time, and map architectural vulnerabilities.
+
+```JavaScript
+// Example: Analyzing an API key in Exhaustive Mode
+const tokenResult = IdCraft.analyzeEntropy("4a5b6c7d8e9f2a1b", {
+    searchMode: "exhaustive"
+});
+
+if (tokenResult.valid) {
+    console.log(`Entropy: ${tokenResult.entropyBits} bits`);
+    console.log(`Character Pool Size: ${tokenResult.poolSize}`);
+    console.log(`Estimated Crack Time: ${tokenResult.crackTimeFormatted}`);
+}
+
+// Example 2: Profiling a user password in Smart Mode (evaluating heuristics)
+const passwordResult = IdCraft.analyzeEntropy("Password12345!", {
+    searchMode: "smart",
+    guessesPerSecond: 1e12 // Simulating a high-end GPU cracking rig
+});
+
+if (passwordResult.valid) {
+    console.log(`String Length: ${passwordResult.stringLength}`);
+    console.log(`Vulnerability Metrics: ${passwordResult.crackTimeFormatted}`);
+    
+    // Iterate through telemetry logs to inspect active structural alerts or penalties
+    passwordResult.messages.forEach(msg => {
+        console.log(`[${msg.severity.toUpperCase()}] ${msg.title}: ${msg.details}`);
+    });
+}
 ```
 ---
 

@@ -1,3 +1,9 @@
+import Message from "./Messages/Message.js";
+import Severity from "./Messages/Severity.js";
+import Catalog from "./Messages/MessageCatalog.js";
+import Codes from "./Messages/MessageCodes.js";
+import nEntropy from "./nEntropy.js"; // 💡 Reusable entropy calculations!
+
 export default class nString {
     static #LOWERCASE_CHARS = "abcdefghijklmnopqrstuvwxyz";
     static #UPPERCASE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -7,137 +13,167 @@ export default class nString {
     static #AMBIGUOUS_CHARS = ["'", '"', "`", "\\"];
 
     /**
-     * Generates a secure, cryptographically strong random string based on options.
-     * @param {Object} options - Configuration for string generation.
-     * @returns {Object} Result object containing the string or error details.
+     * Generates a secure, cryptographically strong random string based on configuration.
+     * @param {Object} [options={}] - Configuration parameters adjustment block.
+     * @returns {Object} Complete analytical output payload execution block.
      */
     static generate(options = {}) {
-        const {
-            length = 16,
-            lowercase = true,
-            uppercase = false,
-            numbers = false,
-            symbols = false,
-            excludeSimilar = false,
-            excludeAmbiguous = false,
-            guaranteeAll = true,
-            extra = ""
-        } = options;
+        const messages = [];
+        
+        // 1. Sanitize input options
+        const config = {
+            length: options.length ?? 16,
+            lowercase: options.lowercase ?? true,
+            uppercase: options.uppercase ?? false,
+            numbers: options.numbers ?? false,
+            symbols: options.symbols ?? false,
+            excludeSimilar: options.excludeSimilar ?? false,
+            excludeAmbiguous: options.excludeAmbiguous ?? false,
+            guaranteeAll: options.guaranteeAll ?? true,
+            extra: options.extra ?? ""
+        };
 
-        // 1. Validation
-        const validation = this.#validateOptions(options);
+        // 2. Structural Validation Phase
+        const validation = nString.#validateOptions(config, messages);
         if (!validation.valid) {
-            return { valid: false, string: "", error: validation.error };
+            return {
+                valid: false,
+                string: "",
+                charsetLength: 0,
+                entropyBits: 0,
+                messages: messages
+            };
         }
 
-        // 2. Build and clean the final charset
-        const charset = this.#getFinalCharset(options);
+        // 3. Build and filter character pool
+        const charset = nString.#getFinalCharset(config, messages);
         const maxValid = Math.floor(256 / charset.length) * charset.length;
 
         let finalString = "";
         let attempts = 0;
-        const maxAttempts = 1000; // Safety guard to avoid infinite loop
+        const maxAttempts = 1000; // Safety guard loop breaker
 
-        // 3. Generation Loop (with guarantee checking)
+        // 4. Cryptographic Generation Loop
         while (attempts < maxAttempts) {
             attempts++;
             let core = "";
 
-            while (core.length < length) {
-                const bytes = crypto.getRandomValues(new Uint8Array(length * 2));
+            while (core.length < config.length) {
+                const bytes = crypto.getRandomValues(new Uint8Array(config.length * 2));
 
                 for (const byte of bytes) {
                     if (byte >= maxValid) continue;
-
                     core += charset[byte % charset.length];
-
-                    if (core.length >= length) break;
+                    if (core.length >= config.length) break;
                 }
             }
 
-            // Check if the generated string satisfies the guarantee rule
-            if (!guaranteeAll || this.#checkGuarantees(core, options)) {
+            // Verify generation satisfies criteria constraints if enabled
+            if (!config.guaranteeAll || nString.#checkGuarantees(core, config)) {
                 finalString = core;
                 break;
             }
         }
 
-        // Fallback in case guaranteeAll fails repeatedly due to tight restrictions
-        if (guaranteeAll && !finalString) {
-            return { valid: false, string: "", error: "Could not guarantee all groups. Try increasing length or adjusting filters." };
+        // 5. Handle fallback failures
+        if (config.guaranteeAll && !finalString) {
+            nString.#addMessage(messages, Codes.GENERATION_GUARANTEE_FAILED);
+            return {
+                valid: false,
+                string: "",
+                charsetLength: charset.length,
+                entropyBits: 0,
+                messages: messages
+            };
         }
+
+        // 6. Metrics and Telemetry calculation payload injection
+        const entropyBits = nEntropy.calculateRawBits(finalString.length, charset.length);
+        nString.#addMessage(messages, Codes.GENERATION_SUCCESS);
 
         return {
             valid: true,
             string: finalString,
-            error: ""
+            charsetLength: charset.length,
+            entropyBits: Math.round(entropyBits * 100) / 100,
+            messages: messages
         };
     }
 
-    /// PRIVATE STATIC METHODS ///
+    // =====================================================
+    // PRIVATE STATIC HELPERS
+    // =====================================================
 
-    static #validateOptions(options = {}) {
-        const { length = 16, lowercase = true, uppercase = false, numbers = false, symbols = false, extra = "" } = options;
-
-        if (!Number.isInteger(length) || length < 1 || length > 128) {
-            return { valid: false, error: "Length must be between 1 and 128" };
-        }
-
-        const charset = this.#getFinalCharset(options);
-
-        if (charset.length < 4) {
-            return { valid: false, error: "Very few characters available. Enable more groups or remove exclusion filters." };
-        }
-        
-        if (new Set(charset).size < 4) {
-            return { valid: false, error: "The resulting charset must contain at least 4 unique characters." };
-        }
-
-        return { valid: true, error: "" };
+    /**
+     * Instantiates a diagnostic message and pushes it into the pipeline collection.
+     * @private
+     */
+    static #addMessage(messages, code, titleData = null, data = null) {
+        messages.push(new Message({ code: code, data: data, titleData: titleData, catalog: Catalog }));
     }
 
     /**
-     * Builds, filters and deduplicates the character pool.
+     * Evaluates integrity and configuration constraints before running execution loops.
+     * @private
      */
-    static #getFinalCharset(options = {}) {
+    static #validateOptions(config, messages) {
+        if (!Number.isInteger(config.length) || config.length < 1 || config.length > 128) {
+            nString.#addMessage(messages, Codes.INVALID_STRING_LENGTH);
+            return { valid: false };
+        }
+
+        const charset = nString.#getFinalCharset(config, []);
+
+        if (charset.length < 4 || new Set(charset).size < 4) {
+            nString.#addMessage(messages, Codes.INSUFFICIENT_CHARSET_POOL);
+            return { valid: false };
+        }
+
+        return { valid: true };
+    }
+
+    /**
+     * Compiles, filters, and deduplicates the active target character pool.
+     * @private
+     */
+    static #getFinalCharset(config, messages) {
         let pool = "";
 
-        if (options.lowercase) pool += this.#LOWERCASE_CHARS;
-        if (options.uppercase) pool += this.#UPPERCASE_CHARS;
-        if (options.numbers) pool += this.#NUMBER_CHARS;
-        if (options.symbols) pool += this.#SYMBOL_CHARS;
-        if (options.extra) pool += options.extra;
+        if (config.lowercase) pool += nString.#LOWERCASE_CHARS;
+        if (config.uppercase) pool += nString.#UPPERCASE_CHARS;
+        if (config.numbers) pool += nString.#NUMBER_CHARS;
+        if (config.symbols) pool += nString.#SYMBOL_CHARS;
+        if (config.extra) pool += config.extra;
 
-        // Μετατροπή σε Array για φιλτράρισμα
         let chars = pool.split("");
 
-        if (options.excludeSimilar) {
-            chars = chars.filter(c => !this.#SIMILAR_CHARS.includes(c));
+        if (config.excludeSimilar) {
+            chars = chars.filter(c => !nString.#SIMILAR_CHARS.includes(c));
+            if (messages.length > 0) nString.#addMessage(messages, Codes.FILTER_SIMILAR_ACTIVE);
         }
 
-        if (options.excludeAmbiguous) {
-            chars = chars.filter(c => !this.#AMBIGUOUS_CHARS.includes(c));
+        if (config.excludeAmbiguous) {
+            chars = chars.filter(c => !nString.#AMBIGUOUS_CHARS.includes(c));
+            if (messages.length > 0) nString.#addMessage(messages, Codes.FILTER_AMBIGUOUS_ACTIVE);
         }
 
-        // Deduplicate (Remove duplicate entries)
         return Array.from(new Set(chars)).join("");
     }
 
     /**
-     * Verifies that the string contains at least one character from each active group,
-     * including user-defined extra characters.
+     * Confirms compliance of the target string against all active groups.
+     * @private
      */
-    static #checkGuarantees(str, options) {
+    static #checkGuarantees(str, config) {
         const chars = str.split("");
 
-        if (options.lowercase && !chars.some(c => this.#LOWERCASE_CHARS.includes(c) && (!options.excludeSimilar || !this.#SIMILAR_CHARS.includes(c)))) return false;
-        if (options.uppercase && !chars.some(c => this.#UPPERCASE_CHARS.includes(c) && (!options.excludeSimilar || !this.#SIMILAR_CHARS.includes(c)))) return false;
-        if (options.numbers && !chars.some(c => this.#NUMBER_CHARS.includes(c) && (!options.excludeSimilar || !this.#SIMILAR_CHARS.includes(c)))) return false;
-        if (options.symbols && !chars.some(c => this.#SYMBOL_CHARS.includes(c) && (!options.excludeAmbiguous || !this.#AMBIGUOUS_CHARS.includes(c)))) return false;
+        if (config.lowercase && !chars.some(c => nString.#LOWERCASE_CHARS.includes(c) && (!config.excludeSimilar || !nString.#SIMILAR_CHARS.includes(c)))) return false;
+        if (config.uppercase && !chars.some(c => nString.#UPPERCASE_CHARS.includes(c) && (!config.excludeSimilar || !nString.#SIMILAR_CHARS.includes(c)))) return false;
+        if (config.numbers && !chars.some(c => nString.#NUMBER_CHARS.includes(c) && (!config.excludeSimilar || !nString.#SIMILAR_CHARS.includes(c)))) return false;
+        if (config.symbols && !chars.some(c => nString.#SYMBOL_CHARS.includes(c) && (!config.excludeAmbiguous || !nString.#AMBIGUOUS_CHARS.includes(c)))) return false;
         
-        // Έλεγχος για το extra charset αν υπάρχει περιεχόμενο
-        if (options.extra && options.extra.trim().length > 0) {
-            if (!chars.some(c => options.extra.includes(c))) return false;
+        if (config.extra && config.extra.trim().length > 0) {
+            if (!chars.some(c => config.extra.includes(c))) return false;
         }
         
         return true;

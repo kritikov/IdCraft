@@ -1,3 +1,12 @@
+import Message from "./Messages/Message.js";
+import Severity from "./Messages/Severity.js";
+import Catalog from "./Messages/MessageCatalog.js";
+import Codes from "./Messages/MessageCodes.js";
+
+/**
+ * Cryptographically Secure Universally Unique Lexicographically Sortable Identifier (ULID) Engine.
+ * Features built-in Monotonicity Guard and full rich telemetry pipeline integration.
+ */
 export default class nULID {
     
     // Crockford's Base32 alphabet (excluding I, L, O, U to avoid visual ambiguity)
@@ -8,63 +17,99 @@ export default class nULID {
     static #lastEntropyBytes = new Uint8Array(10);
 
     /**
-     * Core method for generating batches of ULIDs.
-     * @param {Object} options - Generation configuration options.
-     * @param {number} [options.count=1] - Number of ULIDs to generate.
-     * @param {string} [options.format="uppercase"] - Output casing: 'uppercase' or 'lowercase'.
-     * @returns {Object} { valid: boolean, ulids: string[], monotonicUsed: boolean, error: string }
+     * Core structural method for generating batches of ULIDs with telemetry logs.
+     * * @param {Object} [options={}] - Generation configuration parameters block.
+     * @param {number} [options.count=1] - Total number of tokens to mint sequentially.
+     * @param {string} [options.format="uppercase"] - Output casing layout selection ("uppercase" | "lowercase").
+     * * @returns {{
+     * valid: boolean, 
+     * ulids: string[], 
+     * monotonicUsed: boolean, 
+     * messages: Array
+     * }} Complete output operational execution telemetry block.
      */
     static generateMany(options = {}) {
         const {
             count = 1,
-            format = "uppercase" // uppercase | lowercase
+            format = "uppercase"
         } = options;
 
-        const ulids = [];
-        let monotonicUsed = false;
+        const result = {
+            valid: true,
+            ulids: [],
+            monotonicUsed: false,
+            messages: []
+        };
 
+        // 1. Initial Validation Defenses
+        if (typeof count !== "number" || count <= 0) {
+            result.valid = false;
+            nULID.#addMessage(result.messages, Codes.INPUT_INVALID_COUNT); // Define inside MessageCodes if missing
+            return result;
+        }
+
+        let cryptoFallbackTriggered = false;
+
+        // 2. Generation Loop Engine
         for (let i = 0; i < count; i++) {
             const now = Date.now();
             let currentULID = "";
 
             if (now === nULID.#lastTimestamp) {
-                // 📈 Same millisecond: Trigger Monotonic Increment
-                monotonicUsed = true;
+                // Same millisecond threshold collision: Trigger Monotonic Increment Guard
+                result.monotonicUsed = true;
                 nULID.#incrementEntropy();
             } else {
-                // ✨ New millisecond: Generate fresh random entropy source
+                // New distinct millisecond frame: Seed fresh secure random entropy source
                 nULID.#lastTimestamp = now;
-                nULID.#generateRandomEntropy();
+                const usedFallback = nULID.#generateRandomEntropy();
+                if (usedFallback) cryptoFallbackTriggered = true;
             }
 
-            // 1. Encode the Timestamp component (48 bits -> 10 Base32 characters)
+            // Encode components utilising Crockford's Base32 specifications
             const timePart = nULID.#encodeTime(now, 10);
-
-            // 2. Encode the Entropy component (80 bits -> 16 Base32 characters)
             const entropyPart = nULID.#encodeEntropy(nULID.#lastEntropyBytes, 16);
 
             currentULID = timePart + entropyPart;
 
-            // Apply text casing format
             if (format === "lowercase") {
                 currentULID = currentULID.toLowerCase();
             }
 
-            ulids.push(currentULID);
+            result.ulids.push(currentULID);
         }
 
-        return {
-            valid: true,
-            ulids,
-            monotonicUsed,
-            error: ""
-        };
+        // 3. Compile Diagnostic Status Telemetry
+        if (result.monotonicUsed) {
+            nULID.#addMessage(result.messages, Codes.ULID_MONOTONIC_GUARD_ACTIVE);
+        } else {
+            nULID.#addMessage(result.messages, Codes.ULID_STANDARD_GENERATION_ACTIVE);
+        }
+
+        if (cryptoFallbackTriggered) {
+            nULID.#addMessage(result.messages, Codes.CRYPTO_FALLBACK_WARNING);
+        } else {
+            nULID.#addMessage(result.messages, Codes.CSPRNG_CONTEXT_SECURE);
+        }
+
+        return result;
     }
 
-    // ===== PRIVATE STATIC METHODS =====
+    // =====================================================
+    // PRIVATE STATIC TELEMETRY & MATH HELPERS
+    // =====================================================
 
     /**
-     * Converts a UNIX timestamp integer into a Crockford's Base32 string.
+     * Instantiates a diagnostic message and pushes it into the pipeline collection.
+     * @private
+     */
+    static #addMessage(messages, code, titleData = null, data = null) {
+        messages.push(new Message({ code: code, data: data, titleData: titleData, catalog: Catalog }));
+    }
+
+    /**
+     * Converts a UNIX timestamp integer into a Crockford's Base32 string representation.
+     * @private
      */
     static #encodeTime(now, length) {
         let charArray = new Array(length);
@@ -79,21 +124,26 @@ export default class nULID {
     }
 
     /**
-     * Fills the entropy array using cryptographically secure random values.
+     * Fills the active entropy payload matrix using cryptographically secure random routines.
+     * @private
+     * @returns {boolean} True if the insecure math fallback vector was forced.
      */
     static #generateRandomEntropy() {
         if (typeof crypto !== "undefined" && crypto.getRandomValues) {
             crypto.getRandomValues(nULID.#lastEntropyBytes);
+            return false;
         } else {
-            // Fallback environment implementation if Web Crypto API is unavailable
+            // Environment fallback execution matrix if native Web Crypto APIs are missing
             for (let i = 0; i < 10; i++) {
                 nULID.#lastEntropyBytes[i] = Math.floor(Math.random() * 256);
             }
+            return true;
         }
     }
 
     /**
-     * Increments the entropy byte array by 1 (Monotonic Guard) to handle rapid generation states.
+     * Increments the entropy byte array bitwise by 1 to guarantee sortable monotonicity.
+     * @private
      */
     static #incrementEntropy() {
         let i = nULID.#lastEntropyBytes.length - 1;
@@ -107,22 +157,19 @@ export default class nULID {
     }
 
     /**
-     * Converts the 10-byte entropy array into a Crockford's Base32 string.
+     * Converts the 10-byte raw entropy array into a strict Crockford's Base32 string structure.
+     * @private
      */
     static #encodeEntropy(bytes, length) {
         let charArray = new Array(length);
         
-        // Map the 10 bytes (80 bits) into 5-bit Base32 chunks sequentially
         for (let i = 0; i < length; i++) {
-            // Calculate bit-offset positioning for the current 5-bit segment
             const bitOffset = i * 5;
             const byteIdx = Math.floor(bitOffset / 8);
             const bitRemainder = bitOffset % 8;
 
-            // Extract bits from the primary relative byte position
             let value = bytes[byteIdx] << (bitRemainder + 24);
             
-            // Perform bitwise OR evaluations if chunks span across adjacent byte fields
             if (byteIdx + 1 < bytes.length) {
                 value |= bytes[byteIdx + 1] << (bitRemainder + 16);
             }
@@ -130,7 +177,6 @@ export default class nULID {
                 value |= bytes[byteIdx + 2] << (bitRemainder + 8);
             }
 
-            // Isolate the 5 MSB bits to resolve the specific Base32 character mapping index
             const base32Index = (value >>> 27) & 0x1F;
             charArray[i] = nULID.#BASE32_CHARS[base32Index];
         }
