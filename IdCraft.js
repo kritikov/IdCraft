@@ -1,5 +1,5 @@
 import nNanoId from "./Core/nNanoId.js?ver=1";
-import nUUID from "./Core/nUUID.js?ver=1";
+import nUUID from "./Core/nUUID.js?ver=2";
 import nString from "./Core/nString.js?ver=2";
 import nULID from "./Core/nULID.js?ver=2";
 import nEntropy from "./Core/nEntropy.js?ver=2";

@@ -251,38 +251,51 @@ export default class nUUID {
     }
 
     static #generateUUIDv7() {
-        const hasCrypto = typeof crypto !== "undefined";
+        const hasCrypto = typeof crypto !== "undefined" && !!crypto.getRandomValues;
         const reliability = hasCrypto ? "secure" : "weak";
-        const now = Date.now();
+        
+        let now = Date.now();
         let monotonicTriggered = false;
 
-        if (now === nUUID.#lastTimestamp) {
+        // Handle same millisecond OR clock regression (NTP adjustment, VM resume, etc.)
+        if (now === nUUID.#lastTimestamp || now < nUUID.#lastTimestamp) {
             monotonicTriggered = true;
-            nUUID.#sequence = (nUUID.#sequence + 1) & 0xffff;
+            nUUID.#sequence++;
+            
+            // Overflow protection: if 12-bit counter exceeds 4095, force timestamp forward
+            if (nUUID.#sequence > 0xfff) {
+                nUUID.#lastTimestamp++;
+                nUUID.#sequence = 0;
+            }
         } else {
             nUUID.#lastTimestamp = now;
             nUUID.#sequence = 0;
         }
 
-        const timeHex = BigInt(now).toString(16).padStart(12, "0");
-        const bytes = new Uint8Array(10);
+        // CRITICAL: Use nUUID.#lastTimestamp for the UUID generation, 
+        // because it might have been advanced forward by the overflow protection.
+        const timeHex = BigInt(nUUID.#lastTimestamp).toString(16).padStart(12, "0");
 
+        // 12-bit monotonic counter -> exactly 3 hex chars (rand_a field)
+        const counterHex = nUUID.#sequence.toString(16).padStart(3, "0");
+
+        // 8 fresh random bytes: 1 for the variant byte, 7 for the remaining rand_b tail
+        const randBytes = new Uint8Array(8);
         if (hasCrypto) {
-            crypto.getRandomValues(bytes);
+            crypto.getRandomValues(randBytes);
         } else {
-            for (let i = 0; i < 10; i++) {
-                bytes[i] = Math.floor(Math.random() * 256);
+            for (let i = 0; i < randBytes.length; i++) {
+                randBytes[i] = Math.floor(Math.random() * 256);
             }
         }
 
-        bytes[0] = (nUUID.#sequence >> 8) & 0xff;
-        bytes[1] = nUUID.#sequence & 0xff;
+        // Variant bits come from an independent random byte, never from the counter
+        const variantByte = (randBytes[0] & 0x3f) | 0x80;
+        const variantHex = variantByte.toString(16).padStart(2, "0");
+        const tailHex = Array.from(randBytes.slice(1), b => b.toString(16).padStart(2, "0")).join("");
 
-        const rand = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
         const versionNibble = "7";
-        const variantNibble = ((parseInt(rand[3], 16) & 0x3) | 0x8).toString(16);
-
-        const clean = timeHex + versionNibble + rand.slice(0, 3) + variantNibble + rand.slice(4, 19);
+        const clean = timeHex + versionNibble + counterHex + variantHex + tailHex;
 
         return { reliability, monotonicTriggered, uuid: new nUUID(clean) };
     }
